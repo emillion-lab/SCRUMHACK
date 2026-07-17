@@ -2,7 +2,7 @@
 const KEY='shk1';
 let S=load();
 function load(){try{return JSON.parse(localStorage.getItem(KEY))||fresh()}catch(e){return fresh()}}
-function fresh(){return {srs:{},quiz:{},exam:[],unlocked:{l2:false,l3:false},streakDay:'',streak:0}}
+function fresh(){return {srs:{},quiz:{},exam:[],unlocked:{l2:false,l3:false},streakDay:'',streak:0,read:{}}}
 function save(){localStorage.setItem(KEY,JSON.stringify(S))}
 function today(){return new Date().toISOString().slice(0,10)}
 function bumpStreak(){const t=today();if(S.streakDay===t)return;
@@ -10,20 +10,30 @@ function bumpStreak(){const t=today();if(S.streakDay===t)return;
   S.streak=(S.streakDay===y)?S.streak+1:1;S.streakDay=t;save();paintStreak()}
 function paintStreak(){document.getElementById('streakBox').textContent='🔥 '+(S.streak||0)}
 
-function go(s){
+/* ---- NAVIGATION (with Android back support) ---- */
+function go(s,push){
+  if(push===undefined)push=true;
   document.querySelectorAll('.screen').forEach(e=>e.classList.remove('on'));
   document.getElementById('scr-'+s).classList.add('on');
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('on',b.dataset.s===s));
   window.scrollTo(0,0);
+  if(push&&!(history.state&&history.state.s===s))history.pushState({s:s},'','#'+s);
   if(s==='home')paintHome();
+  if(s==='study')renderStudy();
+  if(s==='learn'&&!deck.length){buildDeck();paintDeckPills();showCard()}
   if(s==='exam')examMenu();
   if(s==='listen')initListen();
 }
+window.onpopstate=function(e){go(e.state&&e.state.s?e.state.s:'home',false)};
+
 function paintHome(){
   document.getElementById('stDue').textContent=dueCards().length;
   document.getElementById('stLearned').textContent=Object.keys(S.srs).length;
   const best=S.exam.length?Math.max(...S.exam.map(a=>a.pct)):null;
   document.getElementById('stBest').textContent=best===null?'—':best+'%';
+  const read=Object.keys(S.read||{}).length;
+  const el=document.getElementById('btnL0');
+  if(el)el.textContent='0 · Study — learn the framework ('+read+'/12 lessons)';
   const b2=document.getElementById('btnL2'),b3=document.getElementById('btnL3');
   b2.classList.toggle('locked',!S.unlocked.l2);
   b3.classList.toggle('locked',!S.unlocked.l3);
@@ -31,7 +41,7 @@ function paintHome(){
   b3.textContent=(S.unlocked.l3?'4 · ':'4 · 🔒 ')+'Exam simulator — 40Q / 30min';
 }
 
-/* ---- SRS ---- */
+/* ---- SRS FLASHCARDS ---- */
 function cardState(i){return S.srs[i]||{iv:0,due:0,reps:0}}
 function dueCards(){const n=Date.now();return CARDS.map((c,i)=>i).filter(i=>cardState(i).due<=n)}
 let deck=[],di=0,flipped=false,deckMode='due';
@@ -51,7 +61,7 @@ function showCard(){
   const n=document.getElementById('fcNote'),meta=document.getElementById('fcMeta'),left=document.getElementById('fcLeft');
   document.getElementById('srsBtns').style.visibility='hidden';
   if(!deck.length||di>=deck.length){
-    n.className='note';n.innerHTML='<span>🎉 Deck complete.<br><small style="font-weight:600;opacity:.7">Come back when cards are due — spacing is the hack.</small></span>';
+    n.className='note';n.innerHTML='<span>🎉 Deck complete.<br><small style="font-weight:600;opacity:.7">Come back when cards are due — spacing is the hack. Or pick another deck above.</small></span>';
     meta.textContent='';left.textContent='';return;
   }
   const c=CARDS[deck[di]];flipped=false;
@@ -81,6 +91,9 @@ function rate(r){
   S.srs[i]=st;save();bumpStreak();di++;showCard();
 }
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}}
+
+/* ---- MNEMONIC WALL ---- */
+document.getElementById('mwall').innerHTML=MNEMOS.map(m=>`<div class="mnote"><b>${m.t}</b>${m.d}</div>`).join('');
 
 /* ---- QUIZ ---- */
 let qz=null;
@@ -128,7 +141,7 @@ function quizResult(){
   document.getElementById('quizPanel').innerHTML=`
    <h2>Level ${qz.l} result</h2>
    <div class="score-big ${pass?'pass':'fail'}">${pct}%</div>
-   <p class="verdict">${pass?(qz.l===1?'Unlocked: Level 2 — tricky rules.':'Unlocked: the Exam Simulator. Go get it.'):'Pass mark is 85%. Review the missed topics in Learn, then retry — spacing + retry beats cramming.'}</p>
+   <p class="verdict">${pass?(qz.l===1?'Unlocked: Level 2 — tricky rules.':'Unlocked: the Exam Simulator. Go get it.'):'Pass mark is 85%. Review the missed topics in Study and Learn, then retry — spacing + retry beats cramming.'}</p>
    <button class="btn" onclick="startQuiz(${qz.l})">Retry Level ${qz.l}</button>
    <button class="btn ghost" onclick="go('home')">Home</button>`;
 }
