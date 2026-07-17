@@ -1,0 +1,13 @@
+{
+  "name": "SCRUMHACK — PSM I Brain Training",
+  "short_name": "SCRUMHACK",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0C1015",
+  "theme_color": "#0C1015",
+  "description": "Spaced repetition, quizzes, exam simulator and audio listen-mode for the PSM I certification.",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
