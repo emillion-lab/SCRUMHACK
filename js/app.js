@@ -65,13 +65,16 @@ function finishExam(){
   window.scrollTo(0,0);
 }
 
-/* ---- LISTEN MODE ---- */
+/* ---- LISTEN MODE (active recall) ----
+   Phases: 0 = question spoken, then THINK pause (recall attempt),
+           1 = answer + explanation spoken, short gap, next card.
+   'quiz' deck reads real exam questions with options A-D. */
 let L={list:[],i:0,playing:false,mode:'all',phase:0,voice:null};
 const synth=window.speechSynthesis;
 function initListen(){
-  const cats=['due','all','Theory','Team','Events','Artifacts','mnemonics'];
+  const cats=['due','all','Theory','Team','Events','Artifacts','mnemonics','quiz'];
   document.getElementById('listenPills').innerHTML=cats.map(c=>
-    `<span class="pill ${c===L.mode?'on':''}" onclick="setListenMode('${c}')">${c==='due'?'Due':c==='all'?'All cards':c}</span>`).join('');
+    `<span class="pill ${c===L.mode?'on':''}" onclick="setListenMode('${c}')">${c==='due'?'Due':c==='all'?'All cards':c==='quiz'?'Audio quiz':c}</span>`).join('');
   loadVoices();
   if(synth&&synth.onvoiceschanged!==undefined)synth.onvoiceschanged=loadVoices;
   buildListenList();paintListenPos();
@@ -85,16 +88,24 @@ function loadVoices(){
 }
 function setListenMode(m){L.mode=m;stopSpeak();buildListenList();initListen()}
 function buildListenList(){
-  if(L.mode==='mnemonics')L.list=MNEMOS.map(m=>({q:m.t,a:m.d,c:'Mnemonic'}));
+  const LET=['A','B','C','D'];
+  if(L.mode==='quiz'){
+    L.list=QUESTIONS.map(q=>({c:'Quiz',
+      q:q.q+' ... '+q.o.map((o,i)=>LET[i]+'. '+o).join('. '),
+      a:'Correct answer: '+LET[q.ans]+'. '+q.o[q.ans]+'. '+q.exp}));
+  }
+  else if(L.mode==='mnemonics')L.list=MNEMOS.map(m=>({q:m.t,a:m.d,c:'Mnemonic'}));
   else if(L.mode==='due')L.list=dueCards().map(i=>CARDS[i]);
   else if(L.mode==='all')L.list=CARDS.slice();
   else L.list=CARDS.filter(c=>c.c===L.mode);
+  shuffle(L.list);
   L.i=0;L.phase=0;
 }
 function paintListenPos(){
   document.getElementById('lnPos').textContent=L.list.length?('Card '+(L.i+1)+' / '+L.list.length):'Empty deck';
   document.getElementById('lnMode').textContent=L.mode;
 }
+function thinkMs(){return parseInt(document.getElementById('think').value,10)*1000}
 function speak(text,done){
   if(!synth||!window.SpeechSynthesisUtterance){document.getElementById('lnText').textContent='Speech synthesis not supported in this browser.';pauseSpeak();return}
   const u=new SpeechSynthesisUtterance(text);
@@ -108,7 +119,11 @@ function playStep(){
   const c=L.list[L.i],lab=document.getElementById('lnLab'),txt=document.getElementById('lnText');
   if(L.phase===0){
     lab.textContent=(c.c||'')+' · question';txt.textContent=c.q;paintListenPos();
-    speak(c.q,()=>{setTimeout(()=>{if(L.playing){L.phase=1;playStep()}},1400)});
+    speak(c.q,()=>{
+      if(!L.playing)return;
+      lab.textContent='think — say your answer out loud';
+      setTimeout(()=>{if(L.playing){L.phase=1;playStep()}},thinkMs());
+    });
   }else{
     lab.textContent='answer';txt.textContent=c.a;
     speak(c.a,()=>{setTimeout(()=>{if(L.playing){L.phase=0;L.i=(L.i+1)%L.list.length;playStep()}},900)});
@@ -136,6 +151,7 @@ function setMedia(){
   navigator.mediaSession.setActionHandler('previoustrack',listenPrev);
 }
 document.getElementById('rate').oninput=e=>document.getElementById('rateVal').textContent=parseFloat(e.target.value).toFixed(1)+'×';
+document.getElementById('think').oninput=e=>document.getElementById('thinkVal').textContent=e.target.value+'s';
 
 /* ---- BOOT ---- */
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
