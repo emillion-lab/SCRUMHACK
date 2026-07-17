@@ -1,0 +1,128 @@
+<body>
+<header class="top">
+  <svg class="logo" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="14" fill="#FFC53D"/><path d="M32 14a18 18 0 1 0 18 18h-7a11 11 0 1 1-11-11z" fill="#0C1015"/><circle cx="46" cy="21" r="5" fill="#0C1015"/></svg>
+  <div class="brand">SCRUMHACK<small>PSM I brain training</small></div>
+  <div class="streak" id="streakBox">🔥 0</div>
+</header>
+
+<!-- ============ HOME ============ -->
+<div class="screen wrap" id="scr-home">
+  <div class="panel">
+    <h2>Today</h2>
+    <div class="stat-row">
+      <div class="stat"><b class="a" id="stDue">0</b><span>cards due</span></div>
+      <div class="stat"><b class="t" id="stBest">—</b><span>best exam</span></div>
+      <div class="stat"><b class="v" id="stLearned">0</b><span>cards seen</span></div>
+    </div>
+    <button class="btn" onclick="startLearn('due')">Review due cards</button>
+  </div>
+
+  <div class="panel">
+    <h2>The 3 · 5 · 3 map — memorize this shape</h2>
+    <div class="map353">
+      <div class="col353"><b>3</b><em>Accountabilities</em>
+        <ul><li>Product Owner</li><li>Scrum Master</li><li>Developers</li></ul></div>
+      <div class="col353"><b>5</b><em>Events</em>
+        <ul><li>Sprint <small>≤1mo</small></li><li>Planning <small>8h</small></li><li>Daily <small>15m</small></li><li>Review <small>4h</small></li><li>Retro <small>3h</small></li></ul></div>
+      <div class="col353"><b>3</b><em>Artifacts</em>
+        <ul><li>P.Backlog <small>→Goal</small></li><li>S.Backlog <small>→Goal</small></li><li>Increment <small>→DoD</small></li></ul></div>
+    </div>
+  </div>
+
+  <div class="panel cycle">
+    <h2>Sprint cycle</h2>
+    <svg viewBox="0 0 360 230" role="img" aria-label="Sprint cycle diagram">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill="#5A6675"/>
+        </marker>
+      </defs>
+      <ellipse cx="180" cy="112" rx="128" ry="82" fill="none" stroke="#26303D" stroke-width="2" stroke-dasharray="5 6"/>
+      <path d="M 96 48 A 128 82 0 0 1 264 48" fill="none" stroke="#5A6675" stroke-width="2" marker-end="url(#arr)"/>
+      <path d="M 296 140 A 128 82 0 0 1 220 188" fill="none" stroke="#5A6675" stroke-width="2" marker-end="url(#arr)"/>
+      <path d="M 130 190 A 128 82 0 0 1 60 130" fill="none" stroke="#5A6675" stroke-width="2" marker-end="url(#arr)"/>
+      <g font-family="system-ui" font-weight="700" text-anchor="middle">
+        <rect x="18" y="30" width="120" height="40" rx="10" fill="#1B232E" stroke="#FFC53D"/>
+        <text x="78" y="47" fill="#FFC53D" font-size="12">SPRINT PLANNING</text>
+        <text x="78" y="62" fill="#8A97A6" font-size="10">why · what · how — 8h</text>
+        <rect x="230" y="30" width="112" height="40" rx="10" fill="#1B232E" stroke="#5CA8FF"/>
+        <text x="286" y="47" fill="#5CA8FF" font-size="12">DAILY SCRUM</text>
+        <text x="286" y="62" fill="#8A97A6" font-size="10">15 min · Developers</text>
+        <rect x="238" y="150" width="104" height="40" rx="10" fill="#1B232E" stroke="#2DD4BF"/>
+        <text x="290" y="167" fill="#2DD4BF" font-size="12">REVIEW 4h</text>
+        <text x="290" y="182" fill="#8A97A6" font-size="10">inspect Increment</text>
+        <rect x="30" y="150" width="118" height="40" rx="10" fill="#1B232E" stroke="#A78BFA"/>
+        <text x="89" y="167" fill="#A78BFA" font-size="12">RETRO 3h</text>
+        <text x="89" y="182" fill="#8A97A6" font-size="10">improve the team</text>
+        <text x="180" y="105" fill="#E8EDF2" font-size="15">THE SPRINT</text>
+        <text x="180" y="123" fill="#8A97A6" font-size="10">≤ 1 month · next starts immediately</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <h2>Path to the certificate</h2>
+    <button class="btn ghost" onclick="go('learn')">1 · Learn — spaced flashcards</button>
+    <button class="btn ghost" onclick="startQuiz(1)">2 · Level 1 quiz — Foundations</button>
+    <button class="btn ghost" id="btnL2" onclick="startQuiz(2)">3 · Level 2 quiz — Tricky rules</button>
+    <button class="btn ghost" id="btnL3" onclick="go('exam')">4 · Exam simulator — 40Q / 30min</button>
+    <p class="lockmsg">Score ≥85% to unlock the next level — the real exam pass mark.</p>
+    <p style="margin-top:12px"><a class="linkout" href="https://www.scrum.org/open-assessments/scrum-open" target="_blank" rel="noopener">Final check: official free Scrum Open assessment ↗</a></p>
+  </div>
+</div>
+
+<!-- ============ LEARN ============ -->
+<div class="screen wrap" id="scr-learn">
+  <div class="panel">
+    <h2>Flashcards — tap to flip, then rate yourself</h2>
+    <div id="deckPills"></div>
+    <div class="deck-zone"><div class="note" id="fcNote" onclick="flipCard()"></div></div>
+    <div class="srs-btns" id="srsBtns" style="visibility:hidden">
+      <button class="again" onclick="rate(0)">Again<small>&lt;10 min</small></button>
+      <button class="hard" onclick="rate(1)">Hard<small>1 day</small></button>
+      <button class="good" onclick="rate(2)">Good<small id="ivGood">3 days</small></button>
+      <button class="easy" onclick="rate(3)">Easy<small id="ivEasy">7 days</small></button>
+    </div>
+    <div class="meta-row"><span id="fcMeta"></span><span id="fcLeft"></span></div>
+  </div>
+  <div class="panel">
+    <h2>Mnemonic wall — anchor images</h2>
+    <div class="mwall" id="mwall"></div>
+  </div>
+</div>
+
+<!-- ============ QUIZ ============ -->
+<div class="screen wrap" id="scr-quiz">
+  <div class="panel" id="quizPanel"></div>
+</div>
+
+<!-- ============ EXAM ============ -->
+<div class="screen wrap" id="scr-exam">
+  <div class="panel" id="examPanel"></div>
+</div>
+
+<!-- ============ LISTEN ============ -->
+<div class="screen wrap" id="scr-listen">
+  <div class="panel">
+    <h2>Listen mode — drive &amp; memorize</h2>
+    <div id="listenPills"></div>
+    <div class="listen-now"><div class="lab" id="lnLab">Ready</div><div id="lnText">Pick a deck and press play. Works with screen off — control from the lock screen.</div></div>
+    <div class="transport">
+      <button onclick="listenPrev()" aria-label="Previous">⏮</button>
+      <button class="play" id="btnPlay" onclick="listenToggle()" aria-label="Play">▶</button>
+      <button onclick="listenNext()" aria-label="Next">⏭</button>
+    </div>
+    <div class="range-row">Speed <input type="range" id="rate" min="0.7" max="1.5" step="0.1" value="1"><span id="rateVal">1.0×</span></div>
+    <select id="voiceSel"></select>
+    <div class="meta-row"><span id="lnPos"></span><span id="lnMode"></span></div>
+  </div>
+  <audio id="silent" loop src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
+</div>
+
+<nav class="bottom">
+  <button data-s="home" class="on" onclick="go('home')"><span class="ico">◉</span>Home</button>
+  <button data-s="learn" onclick="go('learn')"><span class="ico">🗂</span>Learn</button>
+  <button data-s="quiz" onclick="quizMenu()"><span class="ico">✍</span>Quiz</button>
+  <button data-s="exam" onclick="go('exam')"><span class="ico">⏱</span>Exam</button>
+  <button data-s="listen" onclick="go('listen')"><span class="ico">🎧</span>Listen</button>
+</nav>
