@@ -1,0 +1,142 @@
+/* SCRUMHACK: exam simulator + listen mode + boot */
+let ex=null,exTimer=null;
+function examMenu(){
+  clearInterval(exTimer);
+  const hist=S.exam.slice(-8);
+  document.getElementById('examPanel').innerHTML=`
+   <h2>Exam simulator</h2>
+   <p style="font-size:14px;color:var(--dim)">40 questions · 30 minutes — the exact pace of the real PSM I (80Q/60min). Pass mark 85%. No feedback until the end, just like the real thing.</p>
+   ${S.unlocked.l3?'':'<p class="lockmsg">🔒 Unlocks at ≥85% on Level 2.</p>'}
+   <button class="btn" ${S.unlocked.l3?'':'disabled'} onclick="startExam()">Start exam</button>
+   ${hist.length?'<h2 style="margin-top:20px">Attempt history</h2><div class="hist">'+
+     hist.map(a=>`<div class="bar ${a.pct>=85?'p':''}"><span>${a.pct}</span><i style="height:${a.pct}%"></i></div>`).join('')+'</div>':''}
+   <p style="margin-top:14px"><a class="linkout" href="https://www.scrum.org/open-assessments/scrum-open" target="_blank" rel="noopener">When you pass here twice in a row → take the official Scrum Open ↗</a></p>`;
+}
+function startExam(){
+  const pool=QUESTIONS.map((q,i)=>i);shuffle(pool);
+  ex={pool:pool.slice(0,40),i:0,picks:Array(40).fill(-1),end:Date.now()+30*60*1000};
+  paintExamQ();
+  exTimer=setInterval(tick,500);
+}
+function tick(){
+  const el=document.getElementById('exTimer');if(!el){clearInterval(exTimer);return}
+  const ms=ex.end-Date.now();
+  if(ms<=0){finishExam();return}
+  const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000);
+  el.textContent=m+':'+String(s).padStart(2,'0');
+  el.classList.toggle('low',ms<5*60000);
+}
+function paintExamQ(){
+  const q=QUESTIONS[ex.pool[ex.i]],pick=ex.picks[ex.i];
+  document.getElementById('examPanel').innerHTML=`
+   <div class="meta-row"><span>Q ${ex.i+1}/40</span><span class="timer" id="exTimer">30:00</span></div>
+   <p class="qtext">${q.q}</p>
+   ${q.o.map((o,k)=>`<button class="opt" style="${k===pick?'border-color:var(--amber);background:rgba(255,197,61,.1)':''}" onclick="exPick(${k})">${o}</button>`).join('')}
+   <div class="meta-row">
+     <button class="btn small ghost" onclick="exNav(-1)" ${ex.i===0?'disabled':''}>← Prev</button>
+     <button class="btn small ghost" onclick="exNav(1)" ${ex.i===39?'disabled':''}>Next →</button>
+     <button class="btn small" onclick="confirmFinish()">Finish</button>
+   </div>
+   <div class="navgrid">${ex.picks.map((p,j)=>`<button class="${p>=0?'done':''} ${j===ex.i?'cur':''}" onclick="exJump(${j})">${j+1}</button>`).join('')}</div>`;
+  tick();
+}
+function exPick(k){ex.picks[ex.i]=k;if(ex.i<39)ex.i++;paintExamQ()}
+function exNav(d){ex.i=Math.min(39,Math.max(0,ex.i+d));paintExamQ()}
+function exJump(j){ex.i=j;paintExamQ()}
+function confirmFinish(){
+  const un=ex.picks.filter(p=>p<0).length;
+  if(un>0&&!confirm(un+' unanswered questions. Finish anyway?'))return;
+  finishExam();
+}
+function finishExam(){
+  clearInterval(exTimer);
+  let ok=0;const misses=[];
+  ex.pool.forEach((qi,j)=>{if(ex.picks[j]===QUESTIONS[qi].ans)ok++;else misses.push({q:QUESTIONS[qi],pick:ex.picks[j]})});
+  const pct=Math.round(ok/40*100),pass=pct>=85;
+  S.exam.push({d:today(),pct});save();bumpStreak();
+  document.getElementById('examPanel').innerHTML=`
+   <h2>Exam result</h2>
+   <div class="score-big ${pass?'pass':'fail'}">${pct}%</div>
+   <p class="verdict">${pass?'PASS — above the real 85% bar. Do it once more; two passes in a row = book the real exam.':'Below 85%. Every miss below has its rule — read them now while the sting is fresh (that\'s when memory encodes hardest).'}</p>
+   ${misses.length?'<h2>Review your misses ('+misses.length+')</h2>'+misses.map(m=>`
+     <p class="qtext" style="font-size:15px">${m.q.q}</p>
+     <div class="exp"><b>✓ ${m.q.o[m.q.ans]}</b><br>${m.pick>=0?'You chose: '+m.q.o[m.pick]+'. ':''}${m.q.exp}</div>`).join(''):''}
+   <button class="btn" onclick="examMenu()">Back</button>`;
+  window.scrollTo(0,0);
+}
+
+/* ---- LISTEN MODE ---- */
+let L={list:[],i:0,playing:false,mode:'all',phase:0,voice:null};
+const synth=window.speechSynthesis;
+function initListen(){
+  const cats=['due','all','Theory','Team','Events','Artifacts','mnemonics'];
+  document.getElementById('listenPills').innerHTML=cats.map(c=>
+    `<span class="pill ${c===L.mode?'on':''}" onclick="setListenMode('${c}')">${c==='due'?'Due':c==='all'?'All cards':c}</span>`).join('');
+  loadVoices();
+  if(synth&&synth.onvoiceschanged!==undefined)synth.onvoiceschanged=loadVoices;
+  buildListenList();paintListenPos();
+}
+function loadVoices(){
+  const sel=document.getElementById('voiceSel');
+  const vs=synth?synth.getVoices().filter(v=>v.lang.startsWith('en')):[];
+  sel.innerHTML=vs.length?vs.map((v,i)=>`<option value="${i}">${v.name} (${v.lang})</option>`).join(''):'<option>Default English voice</option>';
+  sel.onchange=()=>{L.voice=vs[sel.value]||null};
+  if(vs.length&&!L.voice)L.voice=vs[0];
+}
+function setListenMode(m){L.mode=m;stopSpeak();buildListenList();initListen()}
+function buildListenList(){
+  if(L.mode==='mnemonics')L.list=MNEMOS.map(m=>({q:m.t,a:m.d,c:'Mnemonic'}));
+  else if(L.mode==='due')L.list=dueCards().map(i=>CARDS[i]);
+  else if(L.mode==='all')L.list=CARDS.slice();
+  else L.list=CARDS.filter(c=>c.c===L.mode);
+  L.i=0;L.phase=0;
+}
+function paintListenPos(){
+  document.getElementById('lnPos').textContent=L.list.length?('Card '+(L.i+1)+' / '+L.list.length):'Empty deck';
+  document.getElementById('lnMode').textContent=L.mode;
+}
+function speak(text,done){
+  if(!synth||!window.SpeechSynthesisUtterance){document.getElementById('lnText').textContent='Speech synthesis not supported in this browser.';pauseSpeak();return}
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=parseFloat(document.getElementById('rate').value);
+  if(L.voice)u.voice=L.voice;
+  u.lang='en-US';u.onend=done;
+  synth.speak(u);
+}
+function playStep(){
+  if(!L.playing||!L.list.length)return;
+  const c=L.list[L.i],lab=document.getElementById('lnLab'),txt=document.getElementById('lnText');
+  if(L.phase===0){
+    lab.textContent=(c.c||'')+' · question';txt.textContent=c.q;paintListenPos();
+    speak(c.q,()=>{setTimeout(()=>{if(L.playing){L.phase=1;playStep()}},1400)});
+  }else{
+    lab.textContent='answer';txt.textContent=c.a;
+    speak(c.a,()=>{setTimeout(()=>{if(L.playing){L.phase=0;L.i=(L.i+1)%L.list.length;playStep()}},900)});
+  }
+}
+function listenToggle(){L.playing?pauseSpeak():playSpeak()}
+function playSpeak(){
+  if(!L.list.length){buildListenList();if(!L.list.length)return}
+  L.playing=true;document.getElementById('btnPlay').textContent='⏸';
+  const a=document.getElementById('silent');a.volume=0.01;a.play().catch(()=>{});
+  setMedia();bumpStreak();
+  synth.cancel();playStep();
+}
+function pauseSpeak(){L.playing=false;document.getElementById('btnPlay').textContent='▶';if(synth)synth.cancel();document.getElementById('silent').pause()}
+function stopSpeak(){pauseSpeak();L.i=0;L.phase=0}
+function listenNext(){if(synth)synth.cancel();L.i=(L.i+1)%Math.max(1,L.list.length);L.phase=0;if(L.playing)playStep();else paintListenPos()}
+function listenPrev(){if(synth)synth.cancel();L.i=(L.i-1+L.list.length)%Math.max(1,L.list.length);L.phase=0;if(L.playing)playStep();else paintListenPos()}
+function setMedia(){
+  if(!('mediaSession' in navigator))return;
+  navigator.mediaSession.metadata=new MediaMetadata({title:'SCRUMHACK listen mode',artist:'PSM I flashcards',album:L.mode,
+    artwork:[{src:'icon.svg',sizes:'512x512',type:'image/svg+xml'}]});
+  navigator.mediaSession.setActionHandler('play',playSpeak);
+  navigator.mediaSession.setActionHandler('pause',pauseSpeak);
+  navigator.mediaSession.setActionHandler('nexttrack',listenNext);
+  navigator.mediaSession.setActionHandler('previoustrack',listenPrev);
+}
+document.getElementById('rate').oninput=e=>document.getElementById('rateVal').textContent=parseFloat(e.target.value).toFixed(1)+'×';
+
+/* ---- BOOT ---- */
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+paintStreak();go('home');
