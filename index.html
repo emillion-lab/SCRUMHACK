@@ -122,10 +122,10 @@ select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);bo
 .cycle svg{width:100%;height:auto;display:block}
 nav.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(12,16,21,.92);backdrop-filter:blur(12px);
   border-top:1px solid var(--line);display:flex;justify-content:space-around;
-  padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:50}
-nav.bottom button{background:none;border:none;color:var(--faint);font-family:inherit;font-size:10.5px;font-weight:700;
-  letter-spacing:.04em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px}
-nav.bottom button .ico{font-size:20px;line-height:1}
+  padding:8px 2px calc(8px + env(safe-area-inset-bottom));z-index:50}
+nav.bottom button{background:none;border:none;color:var(--faint);font-family:inherit;font-size:10px;font-weight:700;
+  letter-spacing:.02em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px}
+nav.bottom button .ico{font-size:19px;line-height:1}
 nav.bottom button.on{color:var(--amber)}
 .screen{display:none}.screen.on{display:block}
 .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;
@@ -133,6 +133,8 @@ nav.bottom button.on{color:var(--amber)}
 .pill.on{background:var(--amber);color:#111;border-color:var(--amber)}
 .lockmsg{font-size:13px;color:var(--faint);margin-top:6px}
 .linkout{color:var(--blue);font-size:13.5px;text-decoration:none;font-weight:600}
+.howto{font-size:13.5px;color:var(--dim);margin-top:4px}
+.howto b{color:var(--amber)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -145,13 +147,23 @@ nav.bottom button.on{color:var(--amber)}
 
 <div class="screen wrap" id="scr-home">
   <div class="panel">
+    <h2>Your path — 5 levels</h2>
+    <p class="howto">You don't know Scrum yet? Perfect — start at <b>0 · Study</b> and go down the list. Each level prepares you for the next. Gates open at 85% — the real exam pass mark.</p>
+    <button class="btn teal" id="btnL0" onclick="go('study')">0 · Study — learn the framework (0/12 lessons)</button>
+    <button class="btn ghost" onclick="startLearn('due')">1 · Learn — flashcards that remember what you forget</button>
+    <button class="btn ghost" onclick="startQuiz(1)">2 · Level 1 quiz — Foundations</button>
+    <button class="btn ghost" id="btnL2" onclick="startQuiz(2)">3 · Level 2 quiz — Tricky rules</button>
+    <button class="btn ghost" id="btnL3" onclick="go('exam')">4 · Exam simulator — 40Q / 30min</button>
+    <p style="margin-top:12px"><a class="linkout" href="https://www.scrum.org/open-assessments/scrum-open" target="_blank" rel="noopener">Final check: official free Scrum Open assessment ↗</a></p>
+  </div>
+
+  <div class="panel">
     <h2>Today</h2>
     <div class="stat-row">
       <div class="stat"><b class="a" id="stDue">0</b><span>cards due</span></div>
       <div class="stat"><b class="t" id="stBest">—</b><span>best exam</span></div>
       <div class="stat"><b class="v" id="stLearned">0</b><span>cards seen</span></div>
     </div>
-    <button class="btn" onclick="startLearn('due')">Review due cards</button>
   </div>
 
   <div class="panel">
@@ -196,21 +208,16 @@ nav.bottom button.on{color:var(--amber)}
       </g>
     </svg>
   </div>
+</div>
 
-  <div class="panel">
-    <h2>Path to the certificate</h2>
-    <button class="btn ghost" onclick="go('learn')">1 · Learn — spaced flashcards</button>
-    <button class="btn ghost" onclick="startQuiz(1)">2 · Level 1 quiz — Foundations</button>
-    <button class="btn ghost" id="btnL2" onclick="startQuiz(2)">3 · Level 2 quiz — Tricky rules</button>
-    <button class="btn ghost" id="btnL3" onclick="go('exam')">4 · Exam simulator — 40Q / 30min</button>
-    <p class="lockmsg">Score ≥85% to unlock the next level — the real exam pass mark.</p>
-    <p style="margin-top:12px"><a class="linkout" href="https://www.scrum.org/open-assessments/scrum-open" target="_blank" rel="noopener">Final check: official free Scrum Open assessment ↗</a></p>
-  </div>
+<div class="screen wrap" id="scr-study">
+  <div id="studyList"></div>
 </div>
 
 <div class="screen wrap" id="scr-learn">
   <div class="panel">
-    <h2>Flashcards — tap to flip, then rate yourself</h2>
+    <h2>Flashcards — spaced repetition</h2>
+    <p class="howto"><b>How:</b> read the question → answer OUT LOUD → tap the card to flip → rate yourself honestly. <b>Again</b> = didn't know (card returns in minutes). <b>Easy</b> = knew instantly (card hides for days). Honest ratings teach the algorithm what YOUR brain forgets.</p>
     <div id="deckPills"></div>
     <div class="deck-zone"><div class="note" id="fcNote" onclick="flipCard()"></div></div>
     <div class="srs-btns" id="srsBtns" style="visibility:hidden">
@@ -238,8 +245,9 @@ nav.bottom button.on{color:var(--amber)}
 <div class="screen wrap" id="scr-listen">
   <div class="panel">
     <h2>Listen mode — drive &amp; memorize</h2>
+    <p class="howto"><b>How:</b> pick a deck, press play, drive. You hear a question → silence (think-time) → <b>say the answer out loud</b> → hear the correct answer. Control from the lock screen.</p>
     <div id="listenPills"></div>
-    <div class="listen-now"><div class="lab" id="lnLab">Ready</div><div id="lnText">Pick a deck and press play. After each question you get silent think-time — say the answer out loud before you hear it. Works with screen off.</div></div>
+    <div class="listen-now"><div class="lab" id="lnLab">Ready</div><div id="lnText">Pick a deck above and press play.</div></div>
     <div class="transport">
       <button onclick="listenPrev()" aria-label="Previous">⏮</button>
       <button class="play" id="btnPlay" onclick="listenToggle()" aria-label="Play">▶</button>
@@ -255,7 +263,8 @@ nav.bottom button.on{color:var(--amber)}
 
 <nav class="bottom">
   <button data-s="home" class="on" onclick="go('home')"><span class="ico">◉</span>Home</button>
-  <button data-s="learn" onclick="go('learn')"><span class="ico">🗂</span>Learn</button>
+  <button data-s="study" onclick="go('study')"><span class="ico">📖</span>Study</button>
+  <button data-s="learn" onclick="startLearn('due')"><span class="ico">🗂</span>Learn</button>
   <button data-s="quiz" onclick="quizMenu()"><span class="ico">✍</span>Quiz</button>
   <button data-s="exam" onclick="go('exam')"><span class="ico">⏱</span>Exam</button>
   <button data-s="listen" onclick="go('listen')"><span class="ico">🎧</span>Listen</button>
@@ -263,6 +272,7 @@ nav.bottom button.on{color:var(--amber)}
 
 <script src="js/cards.js"></script>
 <script src="js/questions.js"></script>
+<script src="js/study.js"></script>
 <script src="js/core.js"></script>
 <script src="js/app.js"></script>
 </body>
