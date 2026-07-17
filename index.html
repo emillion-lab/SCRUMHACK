@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0C1015">
+<title>SCRUMHACK — PSM I Brain Training</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{
+  --bg:#0C1015; --panel:#141A22; --panel2:#1B232E; --line:#26303D;
+  --ink:#E8EDF2; --dim:#8A97A6; --faint:#5A6675;
+  --amber:#FFC53D; --teal:#2DD4BF; --coral:#FF6B6B; --violet:#A78BFA; --blue:#5CA8FF;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.5;
+  min-height:100dvh; padding-bottom:calc(76px + env(safe-area-inset-bottom));
+}
+h1,h2,h3{line-height:1.15}
+.wrap{max-width:640px;margin:0 auto;padding:16px}
+header.top{display:flex;align-items:center;gap:10px;padding:14px 16px 4px;max-width:640px;margin:0 auto}
+.logo{width:34px;height:34px;flex:none}
+.brand{font-weight:800;letter-spacing:.06em;font-size:15px}
+.brand small{display:block;font-weight:600;color:var(--dim);letter-spacing:.14em;font-size:10px;text-transform:uppercase}
+.streak{margin-left:auto;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700;color:var(--amber)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-top:14px}
+.panel h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-bottom:10px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{background:var(--panel2);border-radius:10px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;font-weight:800}
+.stat span{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+.stat .t{color:var(--teal)} .stat .a{color:var(--amber)} .stat .v{color:var(--violet)}
+.map353{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.col353{background:var(--panel2);border-radius:10px;padding:10px 8px;border-top:3px solid var(--amber)}
+.col353:nth-child(2){border-top-color:var(--teal)}
+.col353:nth-child(3){border-top-color:var(--violet)}
+.col353 b{display:block;font-size:26px;font-weight:800;text-align:center}
+.col353 em{display:block;font-style:normal;font-size:10px;text-align:center;color:var(--dim);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.col353 ul{list-style:none;font-size:11.5px;color:var(--ink)}
+.col353 li{padding:3px 0;border-top:1px dashed var(--line)}
+.col353 li small{color:var(--faint);float:right}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+  border-radius:12px;padding:13px 18px;font-size:15px;font-weight:700;font-family:inherit;color:#111;
+  background:var(--amber);width:100%;margin-top:10px;transition:transform .08s}
+.btn:active{transform:scale(.97)}
+.btn.ghost{background:var(--panel2);color:var(--ink);border:1px solid var(--line)}
+.btn.teal{background:var(--teal)}
+.btn.small{width:auto;padding:9px 14px;font-size:13px;margin-top:0}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.locked{background:var(--panel2);color:var(--faint);border:1px solid var(--line)}
+.deck-zone{perspective:1000px;margin-top:16px}
+.note{
+  position:relative;background:linear-gradient(178deg,#FFD766 0%,#FFC53D 70%,#F0B32E 100%);
+  color:#2A2100;border-radius:4px;min-height:240px;padding:26px 20px 46px;
+  transform:rotate(-1.3deg);
+  box-shadow:0 12px 24px rgba(0,0,0,.45), 0 2px 4px rgba(0,0,0,.3);
+  font-size:19px;font-weight:700;line-height:1.4;
+  display:flex;align-items:center;justify-content:center;text-align:center;
+}
+.note.back{background:linear-gradient(178deg,#7CEADB 0%,#2DD4BF 70%,#1FBFAC 100%);color:#00312B;transform:rotate(1.1deg)}
+.note::before{content:"";position:absolute;top:-9px;left:50%;transform:translateX(-50%) rotate(-2deg);
+  width:88px;height:22px;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.35);border-radius:2px}
+.note .tag{position:absolute;top:10px;left:12px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.55}
+.note .hint{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:11px;font-weight:600;opacity:.5}
+.srs-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}
+.srs-btns button{border:none;border-radius:10px;padding:12px 4px;font-weight:800;font-size:13px;font-family:inherit;cursor:pointer;color:#101418}
+.srs-btns .again{background:var(--coral)} .srs-btns .hard{background:#FFA94D}
+.srs-btns .good{background:var(--teal)} .srs-btns .easy{background:var(--blue)}
+.srs-btns small{display:block;font-weight:600;font-size:10px;opacity:.7}
+.mwall{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.mnote{border-radius:3px;padding:14px 12px 12px;font-size:12.5px;line-height:1.45;color:#26210A;
+  background:#FFE08A;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.mwall .mnote:nth-child(3n){background:#9BEEDF;color:#03352E;transform:rotate(1.4deg)}
+.mwall .mnote:nth-child(3n+1){transform:rotate(-1.6deg)}
+.mwall .mnote:nth-child(3n+2){background:#D8C6FF;color:#241A45;transform:rotate(.9deg)}
+.mnote b{display:block;font-size:13.5px;margin-bottom:4px}
+.qtext{font-size:17.5px;font-weight:700;margin:8px 0 14px}
+.opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);
+  color:var(--ink);border-radius:12px;padding:13px 14px;font-size:15px;font-family:inherit;margin-top:8px;cursor:pointer}
+.opt.correct{border-color:var(--teal);background:rgba(45,212,191,.12);color:var(--teal);font-weight:700}
+.opt.wrong{border-color:var(--coral);background:rgba(255,107,107,.1);color:var(--coral)}
+.opt:disabled{cursor:default;opacity:.9}
+.exp{background:var(--panel2);border-left:3px solid var(--amber);border-radius:0 10px 10px 0;
+  padding:12px;font-size:13.5px;color:var(--dim);margin-top:12px}
+.exp b{color:var(--amber)}
+.prog{height:6px;background:var(--panel2);border-radius:99px;overflow:hidden;margin-top:12px}
+.prog i{display:block;height:100%;background:var(--teal);border-radius:99px;transition:width .3s}
+.meta-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--dim);margin-top:12px}
+.timer{font-variant-numeric:tabular-nums;font-weight:800;font-size:16px;color:var(--amber)}
+.timer.low{color:var(--coral)}
+.navgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:12px}
+.navgrid button{aspect-ratio:1;border-radius:8px;border:1px solid var(--line);background:var(--panel2);
+  color:var(--dim);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer}
+.navgrid button.done{background:rgba(92,168,255,.18);color:var(--blue);border-color:var(--blue)}
+.navgrid button.cur{outline:2px solid var(--amber)}
+.score-big{font-size:56px;font-weight:800;text-align:center;margin:6px 0}
+.pass{color:var(--teal)} .fail{color:var(--coral)}
+.verdict{text-align:center;font-size:14px;color:var(--dim);margin-bottom:8px}
+.hist{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:12px}
+.hist .bar{flex:1;background:var(--panel2);border-radius:6px 6px 0 0;position:relative;min-width:10px}
+.hist .bar i{position:absolute;bottom:0;left:0;right:0;background:var(--blue);border-radius:6px 6px 0 0}
+.hist .bar.p i{background:var(--teal)}
+.hist .bar span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--dim)}
+.listen-now{background:var(--panel2);border-radius:12px;padding:16px;margin-top:12px;min-height:120px;font-size:16px;font-weight:600}
+.listen-now .lab{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--amber);font-weight:800;margin-bottom:6px}
+.transport{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:10px;margin-top:12px}
+.transport button{border:none;border-radius:12px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+  font-size:22px;padding:14px;cursor:pointer;font-family:inherit}
+.transport .play{background:var(--amber);color:#111;font-weight:800}
+.range-row{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px;color:var(--dim)}
+input[type=range]{flex:1;accent-color:var(--amber)}
+select{background:var(--panel2);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px;font-family:inherit;font-size:14px;width:100%;margin-top:8px}
+.cycle{margin-top:8px}
+.cycle svg{width:100%;height:auto;display:block}
+nav.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(12,16,21,.92);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);display:flex;justify-content:space-around;
+  padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:50}
+nav.bottom button{background:none;border:none;color:var(--faint);font-family:inherit;font-size:10.5px;font-weight:700;
+  letter-spacing:.04em;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 10px}
+nav.bottom button .ico{font-size:20px;line-height:1}
+nav.bottom button.on{color:var(--amber)}
+.screen{display:none}.screen.on{display:block}
+.pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:999px;
+  padding:4px 11px;font-size:12px;font-weight:700;color:var(--dim);margin:4px 4px 0 0;cursor:pointer}
+.pill.on{background:var(--amber);color:#111;border-color:var(--amber)}
+.lockmsg{font-size:13px;color:var(--faint);margin-top:6px}
+.linkout{color:var(--blue);font-size:13.5px;text-decoration:none;font-weight:600}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <svg class="logo" viewBox="0 0 64 64"><rect x="4" y="4" width="56" height="56" rx="14" fill="#FFC53D"/><path d="M32 14a18 18 0 1 0 18 18h-7a11 11 0 1 1-11-11z" fill="#0C1015"/><circle cx="46" cy="21" r="5" fill="#0C1015"/></svg>
+  <div class="brand">SCRUMHACK<small>PSM I brain training</small></div>
+  <div class="streak" id="streakBox">🔥 0</div>
+</header>
+
+<div class="screen wrap" id="scr-home">
+  <div class="panel">
+    <h2>Today</h2>
+    <div class="stat-row">
+      <div class="stat"><b class="a" id="stDue">0</b><span>cards due</span></div>
+      <div class="stat"><b class="t" id="stBest">—</b><span>best exam</span></div>
+      <div class="stat"><b class="v" id="stLearned">0</b><span>cards seen</span></div>
+    </div>
+    <button class="btn" onclick="startLearn('due')">Review due cards</button>
+  </div>
+
+  <div class="panel">
+    <h2>The 3 · 5 · 3 map — memorize this shape</h2>
+    <div class="map353">
+      <div class="col353"><b>3</b><em>Accountabilities</em>
+        <ul><li>Product Owner</li><li>Scrum Master</li><li>Developers</li></ul></div>
+      <div class="col353"><b>5</b><em>Events</em>
+        <ul><li>Sprint <small>≤1mo</small></li><li>Planning <small>8h</small></li><li>Daily <small>15m</small></li><li>Review <small>4h</small></li><li>Retro <small>3h</small></li></ul></div>
+      <div class="col353"><b>3</b><em>Artifacts</em>
+        <ul><li>P.Backlog <small>→Goal</small></li><li>S.Backlog <small>→Goal</small></li><li>Increment <small>→DoD</small></li></ul></div>
+    </div>
+  </div>
+
+  <div class="panel cycle">
+    <h2>Sprint cycle</h2>
+    <svg viewBox="0 0 360 230" role="img" aria-label="Sprint cycle diagram">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0L10 5L0 10z" fill="#5A6675"/>
+        </marker>
+      </defs>
+      <ellipse cx="180" cy="112" rx="128" ry="82" fill="none" stroke="#26303D" stroke-width="2" stroke-dasharray="5 6"/>
+      <path d="M 96 48 A 128 82 0 0 1 264 48" fill="none" stroke="#5A6675" stroke-width="2" marker-end="url(#arr)"/>
+      <path d="M 296 140 A 128 82 0 0 1 220 188" fill="none" stroke="#5A6675" stroke-width="2" marker-end="url(#arr)"/>
+      <path d="M 130 190 A 128 82 0 0 1 60 130" fill="none" stroke="#5A6675" stroke-width="2" marker-end="url(#arr)"/>
+      <g font-family="system-ui" font-weight="700" text-anchor="middle">
+        <rect x="18" y="30" width="120" height="40" rx="10" fill="#1B232E" stroke="#FFC53D"/>
+        <text x="78" y="47" fill="#FFC53D" font-size="12">SPRINT PLANNING</text>
+        <text x="78" y="62" fill="#8A97A6" font-size="10">why · what · how — 8h</text>
+        <rect x="230" y="30" width="112" height="40" rx="10" fill="#1B232E" stroke="#5CA8FF"/>
+        <text x="286" y="47" fill="#5CA8FF" font-size="12">DAILY SCRUM</text>
+        <text x="286" y="62" fill="#8A97A6" font-size="10">15 min · Developers</text>
+        <rect x="238" y="150" width="104" height="40" rx="10" fill="#1B232E" stroke="#2DD4BF"/>
+        <text x="290" y="167" fill="#2DD4BF" font-size="12">REVIEW 4h</text>
+        <text x="290" y="182" fill="#8A97A6" font-size="10">inspect Increment</text>
+        <rect x="30" y="150" width="118" height="40" rx="10" fill="#1B232E" stroke="#A78BFA"/>
+        <text x="89" y="167" fill="#A78BFA" font-size="12">RETRO 3h</text>
+        <text x="89" y="182" fill="#8A97A6" font-size="10">improve the team</text>
+        <text x="180" y="105" fill="#E8EDF2" font-size="15">THE SPRINT</text>
+        <text x="180" y="123" fill="#8A97A6" font-size="10">≤ 1 month · next starts immediately</text>
+      </g>
+    </svg>
+  </div>
+
+  <div class="panel">
+    <h2>Path to the certificate</h2>
+    <button class="btn ghost" onclick="go('learn')">1 · Learn — spaced flashcards</button>
+    <button class="btn ghost" onclick="startQuiz(1)">2 · Level 1 quiz — Foundations</button>
+    <button class="btn ghost" id="btnL2" onclick="startQuiz(2)">3 · Level 2 quiz — Tricky rules</button>
+    <button class="btn ghost" id="btnL3" onclick="go('exam')">4 · Exam simulator — 40Q / 30min</button>
+    <p class="lockmsg">Score ≥85% to unlock the next level — the real exam pass mark.</p>
+    <p style="margin-top:12px"><a class="linkout" href="https://www.scrum.org/open-assessments/scrum-open" target="_blank" rel="noopener">Final check: official free Scrum Open assessment ↗</a></p>
+  </div>
+</div>
+
+<div class="screen wrap" id="scr-learn">
+  <div class="panel">
+    <h2>Flashcards — tap to flip, then rate yourself</h2>
+    <div id="deckPills"></div>
+    <div class="deck-zone"><div class="note" id="fcNote" onclick="flipCard()"></div></div>
+    <div class="srs-btns" id="srsBtns" style="visibility:hidden">
+      <button class="again" onclick="rate(0)">Again<small>&lt;10 min</small></button>
+      <button class="hard" onclick="rate(1)">Hard<small>1 day</small></button>
+      <button class="good" onclick="rate(2)">Good<small id="ivGood">3 days</small></button>
+      <button class="easy" onclick="rate(3)">Easy<small id="ivEasy">7 days</small></button>
+    </div>
+    <div class="meta-row"><span id="fcMeta"></span><span id="fcLeft"></span></div>
+  </div>
+  <div class="panel">
+    <h2>Mnemonic wall — anchor images</h2>
+    <div class="mwall" id="mwall"></div>
+  </div>
+</div>
+
+<div class="screen wrap" id="scr-quiz">
+  <div class="panel" id="quizPanel"></div>
+</div>
+
+<div class="screen wrap" id="scr-exam">
+  <div class="panel" id="examPanel"></div>
+</div>
+
+<div class="screen wrap" id="scr-listen">
+  <div class="panel">
+    <h2>Listen mode — drive &amp; memorize</h2>
+    <div id="listenPills"></div>
+    <div class="listen-now"><div class="lab" id="lnLab">Ready</div><div id="lnText">Pick a deck and press play. Works with screen off — control from the lock screen.</div></div>
+    <div class="transport">
+      <button onclick="listenPrev()" aria-label="Previous">⏮</button>
+      <button class="play" id="btnPlay" onclick="listenToggle()" aria-label="Play">▶</button>
+      <button onclick="listenNext()" aria-label="Next">⏭</button>
+    </div>
+    <div class="range-row">Speed <input type="range" id="rate" min="0.7" max="1.5" step="0.1" value="1"><span id="rateVal">1.0×</span></div>
+    <select id="voiceSel"></select>
+    <div class="meta-row"><span id="lnPos"></span><span id="lnMode"></span></div>
+  </div>
+  <audio id="silent" loop src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA="></audio>
+</div>
+
+<nav class="bottom">
+  <button data-s="home" class="on" onclick="go('home')"><span class="ico">◉</span>Home</button>
+  <button data-s="learn" onclick="go('learn')"><span class="ico">🗂</span>Learn</button>
+  <button data-s="quiz" onclick="quizMenu()"><span class="ico">✍</span>Quiz</button>
+  <button data-s="exam" onclick="go('exam')"><span class="ico">⏱</span>Exam</button>
+  <button data-s="listen" onclick="go('listen')"><span class="ico">🎧</span>Listen</button>
+</nav>
+
+<script src="js/cards.js"></script>
+<script src="js/questions.js"></script>
+<script src="js/core.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
